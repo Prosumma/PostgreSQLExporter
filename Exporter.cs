@@ -17,6 +17,7 @@ namespace Prosumma.PostgreSQL.IO
 		public Exporter()
 		{
 			writers[typeof(String)] = WriteString;
+			writers[typeof(DateTime)] = WriteDateTime;
 		}
 
 		public void Export(DbDataReader inputReader, Stream outputStream, int progressInterval = 0, Action<int> progress = null)
