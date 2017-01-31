@@ -6,7 +6,13 @@ using System.Text;
 
 namespace Prosumma.PostgreSQL.IO
 {
-	public class Exporter
+    public enum ExportOptions
+    {
+        None,
+        IncludeHeaders
+    }
+
+    public class Exporter
 	{
         public class ProgressEventArgs: EventArgs
         {
