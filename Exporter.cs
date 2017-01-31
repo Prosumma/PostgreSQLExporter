@@ -34,6 +34,7 @@ namespace Prosumma.PostgreSQL.IO
 					if (field > 0) writer.Write(ColumnSeparator);
 					writer.Write(inputReader.GetName(field));
 				}
+				writer.Write(writer.NewLine);
 			}
 			while (inputReader.Read())
 			{
@@ -55,6 +56,7 @@ namespace Prosumma.PostgreSQL.IO
 				if (field > 0) writer.Write(ColumnSeparator);
 				WriteField(reader, field, writer);
 			}
+			writer.Write(writer.NewLine);
 		}
 
 		private void WriteObject(object o, StreamWriter writer)
