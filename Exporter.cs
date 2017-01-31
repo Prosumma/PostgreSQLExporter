@@ -8,11 +8,23 @@ namespace Prosumma.PostgreSQL.IO
 {
 	public class Exporter
 	{
+        public class ProgressEventArgs: EventArgs
+        {
+            public int Count { get; private set; }
+
+            public ProgressEventArgs(int count)
+            {
+                Count = count;
+            }
+        }
+
 		private IDictionary<Type, Action<object, StreamWriter>> writers = new Dictionary<Type, Action<object, StreamWriter>>();
 
 		public ExportOptions Options { get; set; } = ExportOptions.IncludeHeaders;
 		public char ColumnSeparator { get; set; } = '\t';
+        public string RowSeparator { get; set; } = "\n";
 		public string NullRepresentation { get; set; } = "\\N";
+        public int ProgressInterval { get; set; } = 0;
 
 		public Exporter()
 		{
@@ -20,12 +32,24 @@ namespace Prosumma.PostgreSQL.IO
 			writers[typeof(DateTime)] = WriteDateTime;
 		}
 
-		public void Export(DbDataReader inputReader, Stream outputStream, int progressInterval = 0, Action<int> progress = null)
+        public event EventHandler<ProgressEventArgs> Progress;
+
+        protected virtual void OnProgress(ProgressEventArgs e)
+        {
+            Progress?.Invoke(this, e);
+        }
+
+        protected void OnProgress(int count)
+        {
+            OnProgress(new ProgressEventArgs(count));
+        }
+
+        public void Export(DbDataReader inputReader, Stream outputStream)
 		{
 			if (!inputReader.HasRows) return;
 
 			StreamWriter writer = new StreamWriter(outputStream, Encoding.UTF8);
-			writer.NewLine = "\n";
+            writer.NewLine = RowSeparator;
 
 			var count = 0;
 			if (Options.HasFlag(ExportOptions.IncludeHeaders))
@@ -41,13 +65,17 @@ namespace Prosumma.PostgreSQL.IO
 			{
 				WriteRow(inputReader, writer);
 				++count;
-				if (progressInterval > 0 && count % progressInterval == 0) progress?.Invoke(count);
+                if (ProgressInterval > 0 && count % ProgressInterval == 0) OnProgress(count);
 			}
 		}
 
-		public void Export(DbDataReader inputReader, string outputPath, int progressInterval = 0, Action<int> progress = null)
+		public void Export(DbDataReader inputReader, string outputPath)
 		{
-			Export(inputReader, File.Create(outputPath), progressInterval, progress);
+            using (var stream = File.Create(outputPath))
+            {
+                Export(inputReader, stream);
+                stream.Flush();
+            }
 		}
 
 		private void WriteRow(DbDataReader reader, StreamWriter writer)
