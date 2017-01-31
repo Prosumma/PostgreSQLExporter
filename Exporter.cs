@@ -73,6 +73,8 @@ namespace Prosumma.PostgreSQL.IO
                 ++count;
                 if (ProgressInterval > 0 && count % ProgressInterval == 0) OnProgress(count);
             }
+
+            writer.Flush();
         }
 
         public void Export(DbDataReader inputReader, string outputPath)
@@ -80,7 +82,6 @@ namespace Prosumma.PostgreSQL.IO
             using (var stream = File.Create(outputPath))
             {
                 Export(inputReader, stream);
-                stream.Flush();
             }
         }
 
