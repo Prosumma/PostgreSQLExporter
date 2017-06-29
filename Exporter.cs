@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Text;
@@ -50,10 +51,8 @@ namespace Prosumma.PostgreSQL.IO
             OnProgress(new ProgressEventArgs(count));
         }
 
-        public void Export(DbDataReader inputReader, Stream outputStream)
+        public void Export(IDataReader inputReader, Stream outputStream)
         {
-            if (!inputReader.HasRows) return;
-
             StreamWriter writer = new StreamWriter(outputStream, Encoding.UTF8);
             writer.NewLine = RowSeparator;
 
@@ -77,7 +76,7 @@ namespace Prosumma.PostgreSQL.IO
             writer.Flush();
         }
 
-        public void Export(DbDataReader inputReader, string outputPath)
+        public void Export(IDataReader inputReader, string outputPath)
         {
             using (var stream = File.Create(outputPath))
             {
@@ -85,7 +84,7 @@ namespace Prosumma.PostgreSQL.IO
             }
         }
 
-        private void WriteRow(DbDataReader reader, StreamWriter writer)
+        private void WriteRow(IDataReader reader, StreamWriter writer)
         {
             for (var field = 0; field < reader.FieldCount; field++)
             {
@@ -110,7 +109,7 @@ namespace Prosumma.PostgreSQL.IO
             writer.Write("{0:u}", o);
         }
 
-        private void WriteField(DbDataReader reader, int field, StreamWriter writer)
+        private void WriteField(IDataReader reader, int field, StreamWriter writer)
         {
             if (reader.IsDBNull(field))
             {
